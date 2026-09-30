@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tear de pedal – modelo 3D interativo</title>
+<meta name="description" content="Modelo 3D interativo de um tear de pedal para tapete de retalho, com controle por gestos.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧶</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/tear.css">
+</head>
+<body>
+<div class="app">
+  <main id="view" aria-label="Visualização 3D do tear">
+    <div id="cam" hidden><video playsinline muted></video><canvas></canvas><div id="gesto">Procurando as mãos</div></div>
+    <div id="mbanner" class="glass" hidden>Está no celular? <a href="celular.html">Versão para celular</a><button class="x" id="mbanner-x" aria-label="Fechar aviso">✕</button></div>
+    <div id="cursor" hidden><span></span></div>
+    <div id="tip" hidden></div>
+    <div id="toast" class="glass" role="status"></div>
+
+    <header class="topbar">
+      <div>
+        <h1>Tear de pedal</h1>
+        <p class="sub">Clique numa peça para ver o que ela faz. Setas ← → percorrem as peças; P abre a produção.</p>
+      </div>
+      <div class="tools">
+        <div class="seg glass" role="group" aria-label="Vistas">
+          <button data-view="iso">Visão geral</button>
+          <button data-view="frente">Frente</button>
+          <button data-view="lateral">Lateral</button>
+          <button data-view="topo">Topo</button>
+        </div>
+        <div class="seg glass" role="group" aria-label="Ferramentas">
+          <button id="explode-btn" aria-pressed="false">Separar peças</button>
+          <button id="cam-btn2">Gestos</button>
+          <button id="prod-btn" aria-pressed="true">Produção</button>
+          <button id="full-btn">Tela cheia</button>
+        </div>
+        <button id="panel-btn" class="burger glass" aria-label="Abrir menu" aria-expanded="false" aria-controls="panel"><span></span><span></span><span></span></button>
+      </div>
+    </header>
+
+    <article class="info glass" id="info" aria-live="polite">
+      <div class="info-top">
+        <span class="chip" id="info-group"></span>
+        <span class="count" id="info-count"></span>
+        <button class="x" id="info-close" aria-label="Fechar explicação">✕</button>
+      </div>
+      <h2 id="info-name"></h2>
+      <dl>
+        <dt>O que é</dt><dd id="info-o"></dd>
+        <dt>Para que serve</dt><dd id="info-f"></dd>
+        <dt>Como funciona</dt><dd id="info-c"></dd>
+      </dl>
+      <div class="info-nav">
+        <button class="tb" id="prev">← Anterior</button>
+        <button class="tb" id="next">Próxima →</button>
+      </div>
+    </article>
+
+    <article class="glass" id="prod" aria-label="Produção de tecido">
+      <div class="info-top">
+        <strong><span class="live"></span><span id="p-state">Tear ligado</span></strong>
+        <button id="p-mini" aria-label="Expandir produção">0,0 cm</button>
+        <button class="x" id="prod-min" aria-label="Minimizar produção">–</button>
+        <button class="x" id="prod-close" aria-label="Fechar produção">✕</button>
+      </div>
+      <div class="pbody">
+        <h3 class="ph">Nesta simulação</h3>
+        <div class="big" id="p-len">0,0 cm</div>
+        <div class="kv"><span>de tapete em <b id="p-time">00:00</b> ligado</span><span><b id="p-picks">0</b> <span id="p-pl">passadas</span></span></div>
+
+        <h3 class="ph">Esse pedaço, na vida real, levaria</h3>
+        <div class="cmp-row"><span>Artesã no tear de pedal</span><b id="p-tman">–</b></div>
+        <div class="bar"><i id="p-bm"></i></div>
+        <div class="cmp-row"><span>Tear automatizado</span><b id="p-tauto">–</b></div>
+        <div class="bar a"><i id="p-ba"></i></div>
+
+        <h3 class="ph">Numa jornada de <span id="p-jhv">8</span> h</h3>
+        <div class="duo">
+          <div><small>Manual</small><b id="p-dman">–</b></div>
+          <div class="a"><small>Automatizado</small><b id="p-dauto">–</b></div>
+        </div>
+        <p class="x-note" id="p-x"></p>
+
+        <details>
+          <summary>Parâmetros e referências</summary>
+          <label class="field">Passadas por cm de tapete <input type="number" id="p-ppc" min="0.5" max="10" step="0.1" value="2"></label>
+          <label class="field">Artesã: cm de tapete por hora <input type="number" id="p-man" min="1" max="200" step="1" value="30"></label>
+          <label class="field">Mecanizado: metros por dia <input type="number" id="p-auto" min="1" max="2000" step="10" value="300"></label>
+          <label class="field">Horas de uma jornada <input type="number" id="p-jh" min="1" max="24" step="0.5" value="8"></label>
+          <ul class="refs">
+            <li>Tapete de retalho costuma ter de 4 a 8 passadas por polegada (≈ 1,6 a 3 por cm).</li>
+            <li>Tecelãs de tapete de retalho relatam cerca de 30 cm (1 pé) por hora no tear de pedal, contando só o tempo tecendo.</li>
+            <li>Um fabricante nacional de tear mecanizado para tapete de malha anuncia de 240 a 360 m lineares por dia.</li>
+            <li>Não entram na conta: preparar o urdume, cortar e emendar tiras e o acabamento. Meçam na oficina para ajustar.</li>
+          </ul>
+          <div class="row"><button class="btn ghost" id="p-reset">Zerar contagem</button></div>
+        </details>
+      </div>
+    </article>
+
+    <div class="cycle glass" id="cycle" aria-label="Ciclo de tecelagem">
+      <button class="play" id="play">Pausar</button>
+      <ol id="steps">
+        <li data-part="pedais"><b>1</b><span>Pedal abre a cala</span></li>
+        <li data-part="navete"><b>2</b><span>Naveta passa a trama</span></li>
+        <li data-part="batente"><b>3</b><span>Pente compacta</span></li>
+        <li data-part="quadros"><b>4</b><span>Cala troca de lado</span></li>
+      </ol>
+      <span class="picks" id="picks">0 passadas</span>
+    </div>
+  </main>
+
+  <div id="scrim"></div>
+  <aside id="panel" class="glass" aria-label="Menu" aria-hidden="true">
+    <div class="panel-head"><strong>Menu</strong><button class="x" id="panel-close" aria-label="Fechar menu">✕</button></div>
+    <section>
+      <h2>Controle por gestos</h2>
+      <p class="note">A webcam acompanha até duas mãos. O mouse e o teclado continuam funcionando.</p>
+      <div class="row"><button class="btn" id="cam-btn">Ativar câmera</button></div>
+      <p id="cam-status">Câmera desligada.</p>
+      <dl class="gest">
+        <dt>Uma mão aberta</dt><dd>Mova a mão para girar o tear.</dd>
+        <dt>Duas mãos abertas</dt><dd>Afaste as mãos para aproximar, junte para afastar. Mover as duas juntas também gira.</dd>
+        <dt>Indicador esticado</dt><dd>Move o cursor; o nome da peça aparece ao passar por ela.</dd>
+        <dt>Pinça (polegar e indicador)</dt><dd>Seleciona a peça sob o cursor. Pinça no vazio fecha a explicação.</dd>
+        <dt>Punho fechado</dt><dd>Descanso: reposicione as mãos sem mexer na vista.</dd>
+      </dl>
+    </section>
+    <section>
+      <h2>Movimento</h2>
+      <div class="ctl"><label for="speed">Velocidade da tecelagem <output id="speed-o">1,0×</output></label>
+        <input type="range" id="speed" min="0.2" max="3" step="0.1" value="1"></div>
+      <div class="ctl"><label for="explode">Separação das peças <output id="explode-o">0%</output></label>
+        <input type="range" id="explode" min="0" max="1" step="0.01" value="0"></div>
+      <label class="check"><input type="checkbox" id="autorot" checked> Girar sozinho quando ninguém mexe</label>
+    </section>
+    <section>
+      <h2>Componentes</h2>
+      <p class="note">Clique no nome para ver a explicação; desmarque para esconder a peça.</p>
+      <ul id="parts"></ul>
+    </section>
+    <section>
+      <h2>Abrir no celular</h2>
+      <p class="note">Aponte a câmera do celular para o código. A versão de celular mostra o modelo e a explicação de cada peça, sem o controle por gestos.</p>
+      <div id="qr"></div>
+      <a id="m-link" href="celular.html">celular.html</a>
+      <p class="note" id="qr-note" style="margin-top:8px"></p>
+    </section>
+    <section>
+      <h2>Dimensões</h2>
+      <p class="note" id="dim-note">Valores estimados pelas fotos, tomando o piso como ~40 cm. Troque pelas medidas reais do tear.</p>
+      <div id="dims"></div>
+      <div class="row"><button class="btn ghost" id="reset-dims">Voltar às estimativas</button></div>
+    </section>
+  </aside>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="assets/tear.js"></script>
+<script type="module" src="assets/gestos.js"></script>
+<script>
+  // aviso para quem abrir a versão completa num celular
+  (function(){
+    var small = Math.min(screen.width, screen.height) < 760, touch = matchMedia('(pointer: coarse)').matches;
+    var el = document.getElementById('mbanner');
+    if (small && touch && el){ el.hidden = false; document.getElementById('mbanner-x').onclick = function(){ el.hidden = true; }; }
+  })();
+</script>
+</body>
+</html>

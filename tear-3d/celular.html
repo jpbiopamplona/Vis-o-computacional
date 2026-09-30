@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tear de pedal – versão para celular</title>
+<meta name="description" content="Conheça as peças de um tear de pedal para tapete de retalho em 3D.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧶</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/tear.css">
+</head>
+<body class="m">
+<div class="app">
+  <main id="view" aria-label="Visualização 3D do tear">
+    <div id="tip" hidden></div>
+    <header class="topbar">
+      <h1>Tear de pedal</h1>
+      <div class="tools">
+        <div class="seg glass" role="group" aria-label="Vistas">
+          <button data-view="iso">Geral</button>
+          <button data-view="frente">Frente</button>
+          <button data-view="lateral">Lateral</button>
+        </div>
+      </div>
+    </header>
+    <div class="cycle glass" id="cycle" aria-label="Ciclo de tecelagem">
+      <button class="play" id="play">Pausar</button>
+      <ol id="steps">
+        <li data-part="pedais"><b>1</b><span>Pedal abre a cala</span></li>
+        <li data-part="navete"><b>2</b><span>Naveta passa a trama</span></li>
+        <li data-part="batente"><b>3</b><span>Pente compacta</span></li>
+        <li data-part="quadros"><b>4</b><span>Cala troca de lado</span></li>
+      </ol>
+      <span class="picks" id="picks">0 passadas</span>
+    </div>
+  </main>
+
+  <section class="m-content">
+    <p class="lead">Toque numa peça do modelo ou abra um item da lista para ver o que ela faz. Arraste o modelo para girar e use dois dedos para aproximar.</p>
+
+    <h2>Como o tear funciona</h2>
+    <ol class="m-steps">
+      <li data-part="pedais"><b>1</b><div><strong>O pedal abre a cala</strong><span>O tecelão pisa um pedal. Pelo cordão, um quadro desce e o outro sobe, separando os fios do urdume em duas camadas.</span></div></li>
+      <li data-part="navete"><b>2</b><div><strong>A naveta passa a trama</strong><span>A naveta atravessa o vão entre as camadas levando a tira de retalho de um lado ao outro.</span></div></li>
+      <li data-part="batente"><b>3</b><div><strong>O pente compacta</strong><span>O tecelão puxa o batente e o pente empurra a tira contra o tapete já tecido.</span></div></li>
+      <li data-part="quadros"><b>4</b><div><strong>A cala troca de lado</strong><span>Pisando o outro pedal, as camadas se invertem e prendem a tira. O ciclo recomeça.</span></div></li>
+    </ol>
+
+    <h2>Peças</h2>
+    <div id="pieces"></div>
+
+    <p class="m-foot">No computador, a <a href="index.html">versão completa</a> tem controle por gestos, contagem de produção e ajuste de medidas.</p>
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="assets/tear.js"></script>
+<script>
+(function(){
+  var T = window.TEAR, list = document.getElementById('pieces');
+  if (!T){ list.textContent = 'Não foi possível carregar o modelo. Verifique a conexão e recarregue a página.'; return; }
+  var html = '';
+  T.GROUPS.forEach(function(g){
+    html += '<p class="m-group">' + g + '</p>';
+    T.TOUR.filter(function(k){ return T.PARTS[k].g === g; }).forEach(function(k){
+      var p = T.PARTS[k];
+      html += '<details class="pcard" data-k="' + k + '"><summary>' + p.n + '</summary><dl>' +
+        '<dt>O que é</dt><dd>' + p.o + '</dd><dt>Para que serve</dt><dd>' + p.f + '</dd><dt>Como funciona</dt><dd>' + p.c + '</dd></dl></details>';
+    });
+  });
+  list.innerHTML = html;
+  var cards = [].slice.call(list.querySelectorAll('.pcard')), fromList = false;
+  cards.forEach(function(d){
+    d.addEventListener('toggle', function(){
+      if (d.open){ fromList = true; T.setSel(d.dataset.k); fromList = false; }
+      else if (T.selected === d.dataset.k) T.setSel(null);
+    });
+  });
+  // toque no modelo 3D: abre o cartão da peça e rola até ele
+  window.TEAR_ON_SELECT = function(k){
+    cards.forEach(function(d){ var want = d.dataset.k === k; if (d.open !== want) d.open = want; });
+    if (k && !fromList){ var d = list.querySelector('[data-k="' + k + '"]'); if (d) d.scrollIntoView({behavior:'smooth', block:'start'}); }
+  };
+  [].forEach.call(document.querySelectorAll('.m-steps [data-part]'), function(li){
+    li.addEventListener('click', function(){ T.setSel(li.dataset.part); });
+  });
+})();
+</script>
+</body>
+</html>
